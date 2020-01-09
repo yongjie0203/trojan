@@ -72,6 +72,7 @@ bool Authenticator::auth(const string &password) {
 }
 
 void Authenticator::record(const std::string &password, uint64_t download, uint64_t upload) {
+    Log::log_with_date_time("debug:user " + password + " record update , down:" + to_string(download) +" up:" + to_string(upload)  , Log::INFO);
     if (!is_valid_password(password)) {
         return;
     }
