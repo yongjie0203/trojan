@@ -40,7 +40,7 @@ Authenticator::Authenticator(const Config &config) {
 }
 
 bool Authenticator::auth(const string &password) {
-    Log::log_with_date_time("debug:user " + password + " connected", Log::INFO);
+    /*Log::log_with_date_time("debug:user " + password + " connected", Log::INFO);*/
     if (!is_valid_password(password)) {
         return false;
     }
