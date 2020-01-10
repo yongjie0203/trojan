@@ -74,6 +74,7 @@ bool Authenticator::auth(const string &password) {
 }
 
 void Authenticator::record(const std::string &password, uint64_t download, uint64_t upload) {
+    static std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
     Log::log_with_date_time("debug:user " + password + " record update , down:" + to_string(download) +" up:" + to_string(upload)  , Log::INFO);
     if (!is_valid_password(password)) {
         return;
@@ -81,21 +82,21 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
     if (mysql_query(&con, ("UPDATE user SET d = d + " + to_string(download) + ", u = u + " + to_string(upload) + " WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
         Log::log_with_date_time(mysql_error(&con), Log::ERROR);
     }    
-    if( Authenticator::trafficInfoMap.find(password) != Authenticator::trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
-        TrafficInfoCache trafficInfo = Authenticator::trafficInfoMap[password];
-        Log::log_with_date_time("debug:user " + password + " TrafficInfoCache:[download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
+    if( trafficInfoMap.find(password) != trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
+        TrafficInfoCache trafficInfo = trafficInfoMap[password];
+        Log::log_with_date_time("debug:user " + password + " [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
         if(trafficInfo.download + trafficInfo.upload + download + upload < (uint64_t)(1024 * (2048 - trafficInfo.skip * 64)) ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
             trafficInfo.upload = trafficInfo.upload + upload;            
-            Authenticator::trafficInfoMap[password] = trafficInfo;
+            trafficInfoMap[password] = trafficInfo;
             return;
         }
         if(difftime(time(0),trafficInfo.last_time) < 60 ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
             trafficInfo.upload = trafficInfo.upload + upload;  
-            Authenticator::trafficInfoMap[password] = trafficInfo;
+            trafficInfoMap[password] = trafficInfo;
             return;
         }
         //上报流量记录处理        
@@ -103,15 +104,15 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         }
         //更新缓存
-        Authenticator::trafficInfoMap.erase(password);
+        trafficInfoMap.erase(password);
     }else{//无缓存记录
         if(download + upload < 1024 * (2048 - 0 * 64) ){
-            TrafficInfoCache trafficInfo = new TrafficInfoCashe();
+            TrafficInfoCache trafficInfo ;
             trafficInfo.download = download;
             trafficInfo.upload = upload;
             trafficInfo.last_time = time(0);
             trafficInfo.skip = 1;
-            Authenticator::trafficInfoMap[password] = trafficInfo;
+            trafficInfoMap[password] = trafficInfo;
         }else{
             //上报流量记录处理            ;
             if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload * conf.rate) +","+ to_string(download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", "+ to_string((download+upload)*conf.rate) +",unix_timestamp() )").c_str())) {
@@ -146,6 +147,7 @@ Authenticator::Authenticator(const Config&) {}
 bool Authenticator::auth(const string&) { return true; }
 void Authenticator::record(const std::string&, uint64_t, uint64_t) {}
 bool Authenticator::is_valid_password(const std::string&) { return true; }
+string Authenticator::traffic_format(uint64_t) { return null; }
 Authenticator::~Authenticator() {}
 
 #endif // ENABLE_MYSQL
