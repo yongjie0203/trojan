@@ -78,6 +78,8 @@ public:
         std::string database;
         std::string username;
         std::string password;
+        int server_id;//节点id
+        float rate;//流量统计倍率
     } mysql;
     void load(const std::string &filename);
     void populate(const std::string &JSON);
