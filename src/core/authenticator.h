@@ -39,6 +39,15 @@ public:
     bool auth(const std::string &password);
     void record(const std::string &password, uint64_t download, uint64_t upload);
     ~Authenticator();
+    /**添加部分开始*/
+    static std::map<std::string, TrafficInfoCache trafficInfoCashe> TrafficInfoMap;
+    class TrafficInfoCache{
+        public:
+            int time;
+            int download;
+            int upload;
+    } trafficInfoCashe;
+    /**添加部分结束*/
 };
 
 #endif // _AUTHENTICATOR_H_
