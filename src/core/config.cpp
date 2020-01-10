@@ -52,6 +52,8 @@ void Config::populate(const ptree &tree) {
     } else {
         throw runtime_error("wrong run_type in config file");
     }
+    server_id = tree.get("server_id",0);//服务器节点id
+    rate = tree.get("rate",1.0);//流量统计倍率
     local_addr = tree.get("local_addr", string());
     local_port = tree.get("local_port", uint16_t());
     remote_addr = tree.get("remote_addr", string());
@@ -97,7 +99,7 @@ void Config::populate(const ptree &tree) {
     mysql.server_port = tree.get("mysql.server_port", uint16_t(3306));
     mysql.database = tree.get("mysql.database", string("trojan"));
     mysql.username = tree.get("mysql.username", string("trojan"));
-    mysql.password = tree.get("mysql.password", string());
+    mysql.password = tree.get("mysql.password", string());    
 }
 
 bool Config::sip003() {
