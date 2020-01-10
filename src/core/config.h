@@ -33,6 +33,8 @@ public:
         FORWARD,
         NAT
     } run_type;
+    int server_id;//节点id
+    float rate;//流量统计倍率
     std::string local_addr;
     uint16_t local_port;
     std::string remote_addr;
@@ -77,9 +79,7 @@ public:
         uint16_t server_port;
         std::string database;
         std::string username;
-        std::string password;
-        int server_id;//节点id
-        float rate;//流量统计倍率
+        std::string password;        
     } mysql;
     void load(const std::string &filename);
     void populate(const std::string &JSON);
