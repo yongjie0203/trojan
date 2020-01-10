@@ -26,6 +26,7 @@ using namespace std;
 #ifdef ENABLE_MYSQL
 
 Authenticator::Authenticator(const Config &config) {
+    conf = config;
     mysql_init(&con);
     Log::log_with_date_time("connecting to MySQL server " + config.mysql.server_addr + ':' + to_string(config.mysql.server_port), Log::INFO);
     if (mysql_real_connect(&con, config.mysql.server_addr.c_str(),
@@ -98,7 +99,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             return;
         }
         //上报流量记录处理        
-        if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(trafficInfo.upload*config.rate) +","+ to_string(trafficInfo.download * config.rate) +","+to_string(config.server_id) +" , "+ to_string(config.rate) +", "+ to_string((trafficInfo.download+trafficInfo.upload)*config.rate) +",unix_timestamp() )").c_str())) {
+        if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(trafficInfo.upload*conf.rate) +","+ to_string(trafficInfo.download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", "+ to_string((trafficInfo.download+trafficInfo.upload) * conf.rate) +",unix_timestamp() )").c_str())) {
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         }
         //更新缓存
@@ -113,7 +114,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             Authenticator::trafficInfoMap[password] = trafficInfo;
         }else{
             //上报流量记录处理            ;
-            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload*config.rate) +","+ to_string(download*config.rate) +","+to_string(config.server_id) +" , "+ to_string(config.rate) +", "+ to_string((download+upload)*config.rate) +",unix_timestamp() )").c_str())) {
+            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload * conf.rate) +","+ to_string(download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", "+ to_string((download+upload)*conf.rate) +",unix_timestamp() )").c_str())) {
                 Log::log_with_date_time(mysql_error(&con), Log::ERROR);
             }
         }       
