@@ -31,6 +31,7 @@ private:
 #ifdef ENABLE_MYSQL
     MYSQL con;
 #endif // ENABLE_MYSQL
+    Config conf;
     enum {
         PASSWORD_LENGTH=56
     };
