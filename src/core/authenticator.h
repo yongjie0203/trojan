@@ -48,7 +48,8 @@ public:
             uint64_t download;
             uint64_t upload;
             int skip;
-    } trafficInfoCashe;
+            TrafficInfoCache();
+    } ;
     static std::map<std::string, TrafficInfoCache> trafficInfoMap;
     /**添加部分结束*/
 };
