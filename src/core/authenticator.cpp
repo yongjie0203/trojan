@@ -82,20 +82,20 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
     }
     int iter = trafficInfoMap.find(password);
     if(iter != trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
-        TrafficInfoCache trafficInfo = trafficInfoMap[password];
+        TrafficInfoCache trafficInfo = Authenticator::trafficInfoMap[password];
         Log::log_with_date_time("debug:user " + password + " TrafficInfoCache:[download:"+ trafficInfo.download+", upload:"+ trafficInfo.upload+", last_time:"+ trafficInfo.last_time +", skip:"+ trafficInfo.skip +"]"  , Log::INFO);        
         if(trafficInfo.download + trafficInfo.upload + download + upload < 1024 * (2048 - trafficInfo.skip * 64) ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
             trafficInfo.upload = trafficInfo.upload + upload;            
-            trafficInfoMap[password] = trafficInfo;
+            Authenticator::trafficInfoMap[password] = trafficInfo;
             return;
         }
         if(difftime(time(0),trafficInfo.last_time) < 60 ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
             trafficInfo.upload = trafficInfo.upload + upload;  
-            trafficInfoMap[password] = trafficInfo;
+            Authenticator::trafficInfoMap[password] = trafficInfo;
             return;
         }
         //上报流量记录处理
@@ -104,7 +104,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         }
         //更新缓存
-        trafficInfoMap.erase(password);
+        Authenticator::trafficInfoMap.erase(password);
     }else{//无缓存记录
         if(download + upload < 1024 * (2048 - 0 * 64) ){
             TrafficInfoCache trafficInfo = new TrafficInfoCashe();
@@ -112,7 +112,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             trafficInfo.upload = upload;
             trafficInfo.last_time = time(0);
             trafficInfo.skip = 1;
-            trafficInfoMap[password] = trafficInfo;
+            Authenticator::trafficInfoMap[password] = trafficInfo;
         }else{
             //上报流量记录处理
             string sql = "insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload*rate) +","+ to_string(download*rate) +","+to_string(server_id) +" , "+ to_string(rate) +", "+ to_string((download+uplaod)*rate) +",unix_timestamp() )";
