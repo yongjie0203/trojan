@@ -44,8 +44,8 @@ public:
     class TrafficInfoCache{
         public:
             time_t last_time;//上次记录时间
-            int download;
-            int upload;
+            uint64_t download;
+            uint64_t upload;
             int skip;
     } trafficInfoCashe;
     static std::map<std::string, TrafficInfoCache trafficInfoCashe> trafficInfoMap;
