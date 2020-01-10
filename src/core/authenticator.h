@@ -40,6 +40,7 @@ public:
     Authenticator(const Config &config);
     bool auth(const std::string &password);
     void record(const std::string &password, uint64_t download, uint64_t upload);
+    string traffic_format(uint64_t);
     ~Authenticator();
     /**添加部分开始*/    
     class TrafficInfoCache{
