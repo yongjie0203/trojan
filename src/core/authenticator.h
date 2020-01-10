@@ -22,6 +22,7 @@
 
 #ifdef ENABLE_MYSQL
 #include <mysql.h>
+#include <ctime>
 #endif // ENABLE_MYSQL
 #include "config.h"
 
@@ -43,7 +44,7 @@ public:
     static std::map<std::string, TrafficInfoCache trafficInfoCashe> trafficInfoMap;
     class TrafficInfoCache{
         public:
-            int time;
+            time_t last_time;//上次记录时间
             int download;
             int upload;
             int skip;
