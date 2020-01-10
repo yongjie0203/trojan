@@ -97,9 +97,8 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             Authenticator::trafficInfoMap[password] = trafficInfo;
             return;
         }
-        //上报流量记录处理
-        string sql = "insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(trafficInfo.upload*rate) +","+ to_string(trafficInfo.download * rate) +","+to_string(server_id) +" , "+ to_string(rate) +", "+ to_string((trafficInfo.download+trafficInfo.uplaod)*rate) +",unix_timestamp() )";
-        if (mysql_query(&con, sql)) {
+        //上报流量记录处理        
+        if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(trafficInfo.upload*config.rate) +","+ to_string(trafficInfo.download * config.rate) +","+to_string(config.server_id) +" , "+ to_string(config.rate) +", "+ to_string((trafficInfo.download+trafficInfo.upload)*config.rate) +",unix_timestamp() )").c_str())) {
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         }
         //更新缓存
@@ -113,9 +112,8 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             trafficInfo.skip = 1;
             Authenticator::trafficInfoMap[password] = trafficInfo;
         }else{
-            //上报流量记录处理
-            string sql = "insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload*rate) +","+ to_string(download*rate) +","+to_string(server_id) +" , "+ to_string(rate) +", "+ to_string((download+uplaod)*rate) +",unix_timestamp() )";
-            if (mysql_query(&con, sql)) {
+            //上报流量记录处理            ;
+            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload*config.rate) +","+ to_string(download*config.rate) +","+to_string(config.server_id) +" , "+ to_string(config.rate) +", "+ to_string((download+upload)*config.rate) +",unix_timestamp() )").c_str())) {
                 Log::log_with_date_time(mysql_error(&con), Log::ERROR);
             }
         }       
