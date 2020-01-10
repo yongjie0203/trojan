@@ -40,8 +40,7 @@ public:
     bool auth(const std::string &password);
     void record(const std::string &password, uint64_t download, uint64_t upload);
     ~Authenticator();
-    /**添加部分开始*/
-    static std::map<std::string, TrafficInfoCache trafficInfoCashe> trafficInfoMap;
+    /**添加部分开始*/    
     class TrafficInfoCache{
         public:
             time_t last_time;//上次记录时间
@@ -49,6 +48,7 @@ public:
             int upload;
             int skip;
     } trafficInfoCashe;
+    static std::map<std::string, TrafficInfoCache trafficInfoCashe> trafficInfoMap;
     /**添加部分结束*/
 };
 
