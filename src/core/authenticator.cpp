@@ -100,7 +100,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             return;
         }
         //上报流量记录处理        
-        if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(trafficInfo.upload*conf.rate) +","+ to_string(trafficInfo.download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", "+ Authenticator::traffic_format(()((trafficInfo.download+trafficInfo.upload)*conf.rate)) +",unix_timestamp() )").c_str())) {
+        if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(trafficInfo.upload*conf.rate) +","+ to_string(trafficInfo.download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", "+ Authenticator::traffic_format((uint64_t)(trafficInfo.download+trafficInfo.upload)*conf.rate)) +",unix_timestamp() )").c_str())) {
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         }
         //更新缓存
@@ -115,7 +115,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             trafficInfoMap[password] = trafficInfo;
         }else{
             //上报流量记录处理             
-            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload * conf.rate) +","+ to_string(download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", "+ Authenticator::traffic_format(()((download+upload)*conf.rate)) +",unix_timestamp() )").c_str())) {
+            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload * conf.rate) +","+ to_string(download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", "+ Authenticator::traffic_format((uint64_t)((download+upload)*conf.rate)) +",unix_timestamp() )").c_str())) {
                 Log::log_with_date_time(mysql_error(&con), Log::ERROR);
             }
         }       
@@ -157,7 +157,7 @@ Authenticator::Authenticator(const Config&) {}
 bool Authenticator::auth(const string&) { return true; }
 void Authenticator::record(const std::string&, uint64_t, uint64_t) {}
 bool Authenticator::is_valid_password(const std::string&) { return true; }
-static string Authenticator::traffic_format(uint64_t) { return null; }
+static std::string Authenticator::traffic_format(uint64_t traffic) { return null; }
 Authenticator::~Authenticator() {}
 
 #endif // ENABLE_MYSQL
