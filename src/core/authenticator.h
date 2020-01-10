@@ -40,12 +40,13 @@ public:
     void record(const std::string &password, uint64_t download, uint64_t upload);
     ~Authenticator();
     /**添加部分开始*/
-    static std::map<std::string, TrafficInfoCache trafficInfoCashe> TrafficInfoMap;
+    static std::map<std::string, TrafficInfoCache trafficInfoCashe> trafficInfoMap;
     class TrafficInfoCache{
         public:
             int time;
             int download;
             int upload;
+            int skip;
     } trafficInfoCashe;
     /**添加部分结束*/
 };
