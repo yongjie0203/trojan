@@ -79,9 +79,8 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
     }
     if (mysql_query(&con, ("UPDATE user SET d = d + " + to_string(download) + ", u = u + " + to_string(upload) + " WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
         Log::log_with_date_time(mysql_error(&con), Log::ERROR);
-    }
-    int iter = Authenticator::trafficInfoMap.find(password);
-    if(iter != Authenticator::trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
+    }    
+    if( Authenticator::trafficInfoMap.find(password) != Authenticator::trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
         TrafficInfoCache trafficInfo = Authenticator::trafficInfoMap[password];
         Log::log_with_date_time("debug:user " + password + " TrafficInfoCache:[download:"+ trafficInfo.download+", upload:"+ trafficInfo.upload+", last_time:"+ trafficInfo.last_time +", skip:"+ trafficInfo.skip +"]"  , Log::INFO);        
         if(trafficInfo.download + trafficInfo.upload + download + upload < 1024 * (2048 - trafficInfo.skip * 64) ){
