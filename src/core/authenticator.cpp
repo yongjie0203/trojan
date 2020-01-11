@@ -86,6 +86,7 @@ bool Authenticator::auth(const string &password) {
     trafficInfo.user_id = id;
     trafficInfo.user_name = user_name;
     trafficInfoMap[password] = trafficInfo;
+    Log::log_with_date_time("用户认证成功[ " + to_string(trafficInfo.user_id) + "] " + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
     return true;
 }
 
@@ -98,7 +99,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
     }    
     if( trafficInfoMap.find(password) != trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
         TrafficInfoCache trafficInfo = trafficInfoMap[password];
-        Log::log_with_date_time("debug:user[ " + trafficInfo.user_id + "] " + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
+        Log::log_with_date_time("debug:user[ " + to_string(trafficInfo.user_id) + "] " + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
         if(trafficInfo.download + trafficInfo.upload + download + upload < (uint64_t)(1024 * (2048 - trafficInfo.skip * 64)) || difftime(time(0),trafficInfo.last_time) < 60 ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
@@ -113,19 +114,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
         //更新缓存
         trafficInfoMap.erase(password);
     }else{//无缓存记录
-        if(download + upload < 1024 * (2048 - 0 * 64) ){
-            TrafficInfoCache trafficInfo ;
-            trafficInfo.download = download;
-            trafficInfo.upload = upload;
-            trafficInfo.last_time = time(0);
-            trafficInfo.skip = 1;
-            trafficInfoMap[password] = trafficInfo;
-        }else{
-            //上报流量记录处理             
-            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES ("+ to_string(trafficInfo.user_id) +","+ to_string(upload * conf.rate) +","+ to_string(download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", '"+ Authenticator::traffic_format((uint64_t)((download+upload)*conf.rate)) +"',unix_timestamp() )").c_str())) {
-                Log::log_with_date_time(mysql_error(&con), Log::ERROR);
-            }
-        }       
+         Log::log_with_date_time("无用户信息，无法记录用户流量信息" , Log::INFO);        
         
     }
     
