@@ -130,10 +130,34 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         }
         //更新缓存
-        //trafficInfoMap.erase(password);
+        trafficInfoMap.erase(password);
     }else{//无缓存记录
-         Log::log_with_date_time("无用户信息，无法记录用户流量信息" , Log::INFO);        
-        
+        Log::log_with_date_time("无缓存记录，先查询信息" , Log::INFO);
+        if (mysql_query(&con, ("SELECT transfer_enable, d + u,enable,id,username  FROM `user` WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
+            Log::log_with_date_time(mysql_error(&con), Log::ERROR);            
+        }
+        MYSQL_RES *res = mysql_store_result(&con);
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int64_t quota = atoll(row[0]);
+        int64_t used = atoll(row[1]);
+        int64_t enable = atoll(row[2]);  
+        int64_t id = atoll(row[3]);
+        std::string user_name = row[4]; 
+        if(download + upload < 1024 * (2048 - 0 * 64) ){	     
+            TrafficInfoCache trafficInfo ;	
+            trafficInfo.download = download;	
+            trafficInfo.upload = upload;	
+            trafficInfo.last_time = time(0);	
+            trafficInfo.skip = 1;
+            trafficInfo.user_id = id;
+            trafficInfo.user_name = user_name;                                            
+            trafficInfoMap[password] = trafficInfo;	
+        }else{	
+            //上报流量记录处理             	
+            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES ("+ to_string(trafficInfo.user_id) +","+ to_string(upload * conf.rate) +","+ to_string(download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", '"+ Authenticator::traffic_format((uint64_t)((download+upload)*conf.rate)) +"',unix_timestamp() )").c_str())) {	
+                Log::log_with_date_time(mysql_error(&con), Log::ERROR);	
+            }	
+        } 
     }
     
     
