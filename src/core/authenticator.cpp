@@ -24,7 +24,7 @@
 using namespace std;
 
 #ifdef ENABLE_MYSQL
-
+static std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
 Authenticator::Authenticator(const Config &config) {
     conf = config;
     mysql_init(&con);
@@ -74,7 +74,7 @@ bool Authenticator::auth(const string &password) {
 }
 
 void Authenticator::record(const std::string &password, uint64_t download, uint64_t upload) {
-    static std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
+    
     Log::log_with_date_time("debug:user " + password + " record update , down:" + to_string(download) +" up:" + to_string(upload)  , Log::INFO);
     if (!is_valid_password(password)) {
         return;
