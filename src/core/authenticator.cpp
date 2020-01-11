@@ -105,19 +105,26 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
     if (!is_valid_password(password)) {
         return;
     }
-    if (mysql_query(&con, ("UPDATE user SET d = d + " + to_string(download) + ", u = u + " + to_string(upload) + " WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
+    if (mysql_query(&con, ("UPDATE user SET d = d + " + to_string(download) + ", u = u + " + to_string(upload) + ",t = unix_timestamp()  WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
         Log::log_with_date_time(mysql_error(&con), Log::ERROR);
     }    
     if( trafficInfoMap.find(password) != trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
         TrafficInfoCache trafficInfo = trafficInfoMap[password];
-        Log::log_with_date_time("debug:user[" + to_string(trafficInfo.user_id) + "]" + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
-        if(trafficInfo.download + trafficInfo.upload + download + upload < (uint64_t)(1024 * (2048 - trafficInfo.skip * 64)) || difftime(time(0),trafficInfo.last_time) < 60 ){
+        Log::log_with_date_time("流量上报[" + to_string(trafficInfo.user_id) + "]" + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
+        if(trafficInfo.download + trafficInfo.upload + download + upload < (uint64_t)(1024 * (2048 - trafficInfo.skip * 64)) ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
             trafficInfo.upload = trafficInfo.upload + upload;            
             trafficInfoMap[password] = trafficInfo;
             return;
-        }        
+        }
+        if(|| difftime(time(0),trafficInfo.last_time) < 60 ){
+            trafficInfo.skip = trafficInfo.skip + 1;
+            trafficInfo.download = trafficInfo.download + download;
+            trafficInfo.upload = trafficInfo.upload + upload;            
+            trafficInfoMap[password] = trafficInfo;
+            return;
+        }
         //上报流量记录处理        
         if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (" + to_string(trafficInfo.user_id) +","+ to_string(trafficInfo.upload*conf.rate) +","+ to_string(trafficInfo.download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", '"+ Authenticator::traffic_format((uint64_t)((trafficInfo.download+trafficInfo.upload)*conf.rate)) +"',unix_timestamp() )").c_str())) {
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
