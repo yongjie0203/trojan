@@ -151,6 +151,10 @@ string Authenticator::traffic_format(uint64_t traffic) {
     return to_string((traffic / 1048576.0) ) + "MB";
 }
 
+void cleanUserInfo(const std::string &password){
+    trafficInfoMap.erase(password);
+}
+
 Authenticator::~Authenticator() {
     mysql_close(&con);
 }
@@ -162,6 +166,7 @@ bool Authenticator::auth(const string&) { return true; }
 void Authenticator::record(const std::string&, uint64_t, uint64_t) {}
 bool Authenticator::is_valid_password(const std::string&) { return true; }
 std::string Authenticator::traffic_format(uint64_t traffic) { return null; }
+void cleanUserInfo(const std::string &password){}
 Authenticator::~Authenticator() {}
 
 #endif // ENABLE_MYSQL
