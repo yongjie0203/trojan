@@ -81,10 +81,6 @@ bool Authenticator::auth(const string &password) {
     
     if( trafficInfoMap.find(password) != trafficInfoMap.end()){//有缓存
         TrafficInfoCache trafficInfo = trafficInfoMap[password];
-        trafficInfo.download = 100;
-        trafficInfo.upload = 100;
-        trafficInfo.last_time = time(0);
-        trafficInfo.skip = 0;
         trafficInfo.user_id = id;
         trafficInfo.user_name = user_name;
         trafficInfoMap[password] = trafficInfo;
