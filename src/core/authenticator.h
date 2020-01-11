@@ -40,9 +40,11 @@ public:
     Authenticator(const Config &config);
     bool auth(const std::string &password);
     void record(const std::string &password, uint64_t download, uint64_t upload);
-    static std::string traffic_format(uint64_t traffic);
+    
     ~Authenticator();
-    /**添加部分开始*/    
+#ifdef ENABLE_MYSQL
+    std::string traffic_format(uint64_t traffic);
+    void cleanUserInfo(const std::string &password);
     class TrafficInfoCache{
         public:
             time_t last_time;//上次记录时间
@@ -52,8 +54,7 @@ public:
             uint64_t user_id;
             std::string user_name;
     } ;
-    //static std::map<std::string, TrafficInfoCache> trafficInfoMap;
-    /**添加部分结束*/
+  #endif // ENABLE_MYSQL  
 };
 
 #endif // _AUTHENTICATOR_H_
