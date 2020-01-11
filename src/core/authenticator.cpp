@@ -112,7 +112,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
     if( trafficInfoMap.find(password) != trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
         TrafficInfoCache trafficInfo = trafficInfoMap[password];
         Log::log_with_date_time("流量上报[" + to_string(trafficInfo.user_id) + "]" + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
-        if(trafficInfo.download + trafficInfo.upload + download + upload < (uint64_t)(1024 * (2048 - trafficInfo.skip * 64)) ){
+        if(trafficInfo.download + trafficInfo.upload + download + upload < (int)(1024 * (2048 - trafficInfo.skip * 64)) ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
             trafficInfo.upload = trafficInfo.upload + upload;            
