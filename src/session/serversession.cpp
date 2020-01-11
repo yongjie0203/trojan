@@ -322,7 +322,7 @@ void ServerSession::destroy() {
     Log::log_with_endpoint(in_endpoint, "disconnected, " + to_string(recv_len) + " bytes received, " + to_string(sent_len) + " bytes sent, lasted for " + to_string(time(NULL) - start_time) + " seconds", Log::INFO);
     if (auth && !auth_password.empty()) {
         auth->record(auth_password, recv_len, sent_len);
-        auth->trafficInfoMap.erase(password);
+        Authenticator::trafficInfoMap.erase(password);
     }
     boost::system::error_code ec;
     resolver.cancel();
