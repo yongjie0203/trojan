@@ -138,7 +138,7 @@ bool Authenticator::is_valid_password(const std::string &password) {
     return true;
 }
 
-static string Authenticator::traffic_format(uint64_t traffic) { 
+string Authenticator::traffic_format(uint64_t traffic) { 
     if (traffic < 1024 * 8){
         return to_string(traffic) + "B";
     }     
@@ -158,7 +158,7 @@ Authenticator::Authenticator(const Config&) {}
 bool Authenticator::auth(const string&) { return true; }
 void Authenticator::record(const std::string&, uint64_t, uint64_t) {}
 bool Authenticator::is_valid_password(const std::string&) { return true; }
-static std::string Authenticator::traffic_format(uint64_t traffic) { return null; }
+std::string Authenticator::traffic_format(uint64_t traffic) { return null; }
 Authenticator::~Authenticator() {}
 
 #endif // ENABLE_MYSQL
