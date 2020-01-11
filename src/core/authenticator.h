@@ -48,7 +48,9 @@ public:
             time_t last_time;//上次记录时间
             uint64_t download;
             uint64_t upload;
-            int skip;            
+            int skip;
+            uint64_t user_id;
+            std::string user_name;
     } ;
     //static std::map<std::string, TrafficInfoCache> trafficInfoMap;
     /**添加部分结束*/
