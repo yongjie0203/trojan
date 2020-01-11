@@ -46,7 +46,7 @@ bool Authenticator::auth(const string &password) {
     if (!is_valid_password(password)) {
         return false;
     }
-    if (mysql_query(&con, ("SELECT transfer_enable, d + u FROM `user` WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
+    if (mysql_query(&con, ("SELECT transfer_enable, d + u,enable,id,username, FROM `user` WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
         Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         return false;
     }
@@ -62,6 +62,10 @@ bool Authenticator::auth(const string &password) {
     }
     int64_t quota = atoll(row[0]);
     int64_t used = atoll(row[1]);
+    int64_t enable = atoll(row[2]);  
+    int64_t id = atoll(row[3]);
+    std::string user_name = row[4]; 
+    
     mysql_free_result(res);
     if (quota < 0) {
         return true;
@@ -70,12 +74,22 @@ bool Authenticator::auth(const string &password) {
         Log::log_with_date_time(password + " ran out of quota", Log::WARN);
         return false;
     }
+    if (enable != 1) {
+         Log::log_with_date_time(password + " is disabled", Log::WARN);
+        return false;
+    }
+    TrafficInfoCache trafficInfo ;
+    trafficInfo.download = 100;
+    trafficInfo.upload = 100;
+    trafficInfo.last_time = time(0);
+    trafficInfo.skip = 0;
+    trafficInfo.user_id = id;
+    trafficInfo.user_name = user_name;
+    trafficInfoMap[password] = trafficInfo;
     return true;
 }
 
-void Authenticator::record(const std::string &password, uint64_t download, uint64_t upload) {
-    
-    Log::log_with_date_time("debug:user " + password + " record update , down:" + to_string(download) +" up:" + to_string(upload)  , Log::INFO);
+void Authenticator::record(const std::string &password, uint64_t download, uint64_t upload) { 
     if (!is_valid_password(password)) {
         return;
     }
@@ -84,23 +98,16 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
     }    
     if( trafficInfoMap.find(password) != trafficInfoMap.end()){//有缓存记录，本次也跳过的情况
         TrafficInfoCache trafficInfo = trafficInfoMap[password];
-        Log::log_with_date_time("debug:user " + password + " [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
-        if(trafficInfo.download + trafficInfo.upload + download + upload < (uint64_t)(1024 * (2048 - trafficInfo.skip * 64)) ){
+        Log::log_with_date_time("debug:user[ " + trafficInfo.user_id + "] " + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
+        if(trafficInfo.download + trafficInfo.upload + download + upload < (uint64_t)(1024 * (2048 - trafficInfo.skip * 64)) || difftime(time(0),trafficInfo.last_time) < 60 ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
             trafficInfo.upload = trafficInfo.upload + upload;            
             trafficInfoMap[password] = trafficInfo;
             return;
-        }
-        if(difftime(time(0),trafficInfo.last_time) < 60 ){
-            trafficInfo.skip = trafficInfo.skip + 1;
-            trafficInfo.download = trafficInfo.download + download;
-            trafficInfo.upload = trafficInfo.upload + upload;  
-            trafficInfoMap[password] = trafficInfo;
-            return;
-        }
+        }        
         //上报流量记录处理        
-        if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(trafficInfo.upload*conf.rate) +","+ to_string(trafficInfo.download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", '"+ Authenticator::traffic_format((uint64_t)((trafficInfo.download+trafficInfo.upload)*conf.rate)) +"',unix_timestamp() )").c_str())) {
+        if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (" + to_string(trafficInfo.user_id) +","+ to_string(trafficInfo.upload*conf.rate) +","+ to_string(trafficInfo.download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", '"+ Authenticator::traffic_format((uint64_t)((trafficInfo.download+trafficInfo.upload)*conf.rate)) +"',unix_timestamp() )").c_str())) {
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         }
         //更新缓存
@@ -115,7 +122,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             trafficInfoMap[password] = trafficInfo;
         }else{
             //上报流量记录处理             
-            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (1,"+ to_string(upload * conf.rate) +","+ to_string(download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", '"+ Authenticator::traffic_format((uint64_t)((download+upload)*conf.rate)) +"',unix_timestamp() )").c_str())) {
+            if (mysql_query(&con, ("insert into  user_traffic_log (`user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES ("+ to_string(trafficInfo.user_id) +","+ to_string(upload * conf.rate) +","+ to_string(download * conf.rate) +","+to_string(conf.server_id) +" , "+ to_string(conf.rate) +", '"+ Authenticator::traffic_format((uint64_t)((download+upload)*conf.rate)) +"',unix_timestamp() )").c_str())) {
                 Log::log_with_date_time(mysql_error(&con), Log::ERROR);
             }
         }       
