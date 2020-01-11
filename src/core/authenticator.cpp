@@ -185,8 +185,8 @@ string Authenticator::traffic_format(uint64_t traffic) {
 }
 
 void Authenticator::cleanUserInfo(const std::string &password){
-    //trafficInfoMap.erase(password);
-    //Log::log_with_date_time("清除用户缓存" + password  , Log::INFO);        
+    trafficInfoMap.erase(password);
+    Log::log_with_date_time("session销毁，清除用户缓存" + password  , Log::INFO);        
 }
 
 Authenticator::~Authenticator() {
