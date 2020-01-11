@@ -88,6 +88,7 @@ bool Authenticator::auth(const string &password) {
         trafficInfo.user_id = id;
         trafficInfo.user_name = user_name;
         trafficInfoMap[password] = trafficInfo;
+        Log::log_with_date_time("有用户缓存，用户认证成功[" + to_string(trafficInfo.user_id) + "]" + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
     }else{
         TrafficInfoCache trafficInfo;
         trafficInfo.download = 100;
@@ -97,9 +98,10 @@ bool Authenticator::auth(const string &password) {
         trafficInfo.user_id = id;
         trafficInfo.user_name = user_name;
         trafficInfoMap[password] = trafficInfo;
+        Log::log_with_date_time("无用户缓存用户认证成功[" + to_string(trafficInfo.user_id) + "]" + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
     }
     
-    Log::log_with_date_time("用户认证成功[" + to_string(trafficInfo.user_id) + "]" + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
+    
     return true;
 }
 
