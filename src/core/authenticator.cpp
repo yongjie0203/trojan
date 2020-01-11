@@ -118,7 +118,7 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             trafficInfoMap[password] = trafficInfo;
             return;
         }
-        if(|| difftime(time(0),trafficInfo.last_time) < 60 ){
+        if( difftime(time(0),trafficInfo.last_time) < 60 ){
             trafficInfo.skip = trafficInfo.skip + 1;
             trafficInfo.download = trafficInfo.download + download;
             trafficInfo.upload = trafficInfo.upload + upload;            
