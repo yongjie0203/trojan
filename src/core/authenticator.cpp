@@ -46,7 +46,7 @@ bool Authenticator::auth(const string &password) {
     if (!is_valid_password(password)) {
         return false;
     }
-    if (mysql_query(&con, ("SELECT transfer_enable, d + u,enable,id,username, FROM `user` WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
+    if (mysql_query(&con, ("SELECT transfer_enable, d + u,enable,id,username  FROM `user` WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
         Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         return false;
     }
