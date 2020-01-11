@@ -78,13 +78,13 @@ bool Authenticator::auth(const string &password) {
          Log::log_with_date_time(password + " is disabled", Log::WARN);
         return false;
     }
+    TrafficInfoCache trafficInfo;
     if( trafficInfoMap.find(password) != trafficInfoMap.end()){//有缓存
-        TrafficInfoCache trafficInfo = trafficInfoMap[password];
+        trafficInfo = trafficInfoMap[password];
         trafficInfo.user_id = id;
         trafficInfo.user_name = user_name;
         trafficInfoMap[password] = trafficInfo;
-    }else{
-        TrafficInfoCache trafficInfo ;
+    }else{        
         trafficInfo.download = 100;
         trafficInfo.upload = 100;
         trafficInfo.last_time = time(0);
