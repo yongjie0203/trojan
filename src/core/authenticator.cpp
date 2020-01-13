@@ -24,7 +24,7 @@
 using namespace std;
 
 #ifdef ENABLE_MYSQL
-
+std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
 Authenticator::Authenticator(const Config &config) {
     conf = config;
     mysql_init(&con);
