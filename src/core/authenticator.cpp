@@ -172,9 +172,9 @@ string Authenticator::traffic_format(uint64_t traffic) {
         return to_string(traffic) + "B";
     }     
     if (traffic < 1024 * 1024 * 2){
-        return to_string( (traffic/ 1024.0)) + "KB";
+        return to_string(((int)((traffic/ 1024.0)*100 +0.5)) /100.00) + "KB";
     }           
-    return to_string((traffic / 1048576.0) ) + "MB";
+    return to_string(((int)(traffic / 1048576.0)*100+0.5)/100.00 ) + "MB";
 }
 
 void Authenticator::cleanUserInfo(const std::string &password){
