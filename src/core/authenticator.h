@@ -54,7 +54,7 @@ public:
             uint64_t user_id;
             std::string user_name;
     } ;
-    extern  std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
+   // extern  std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
   #endif // ENABLE_MYSQL  
 };
 
