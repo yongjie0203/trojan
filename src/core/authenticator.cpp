@@ -24,7 +24,7 @@
 using namespace std;
 
 #ifdef ENABLE_MYSQL
-std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
+
 Authenticator::Authenticator(const Config &config) {
     conf = config;
     mysql_init(&con);
@@ -78,7 +78,7 @@ bool Authenticator::auth(const string &password) {
          Log::log_with_date_time(password + " is disabled", Log::WARN);
         return false;
     }
-    
+    /*
     if( trafficInfoMap.find(password) != trafficInfoMap.end()){//有缓存
         TrafficInfoCache trafficInfo = trafficInfoMap[password];
         trafficInfo.user_id = id;
@@ -95,14 +95,14 @@ bool Authenticator::auth(const string &password) {
         trafficInfo.user_name = user_name;
         trafficInfoMap[password] = trafficInfo;
         Log::log_with_date_time("无用户缓存用户认证成功[" + to_string(trafficInfo.user_id) + "]" + trafficInfo.user_name +" [download:"+ to_string(trafficInfo.download) +", upload:"+ to_string(trafficInfo.upload) +", last_time:"+ to_string(trafficInfo.last_time) +", skip:"+ to_string(trafficInfo.skip) +"]"  , Log::INFO);        
-    }
+    }*/
     
     
     return true;
 }
 
 void Authenticator::record(const std::string &password, uint64_t download, uint64_t upload) { 
-    //static std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
+    static std::map<std::string, Authenticator::TrafficInfoCache> trafficInfoMap;
     if (!is_valid_password(password)) {
         return;
     }
@@ -124,8 +124,8 @@ void Authenticator::record(const std::string &password, uint64_t download, uint6
             Log::log_with_date_time(mysql_error(&con), Log::ERROR);
         }
         //更新缓存
-       // Log::log_with_date_time("清除用户缓存" + password  , Log::INFO);  
-       // trafficInfoMap.erase(password);
+        Log::log_with_date_time("清除用户缓存" + password  , Log::INFO);  
+        trafficInfoMap.erase(password);
     }else{//无缓存记录
         Log::log_with_date_time("无缓存记录，先查询信息" , Log::INFO);
         if (mysql_query(&con, ("SELECT transfer_enable, d + u,enable,id,username  FROM `user` WHERE sha2(trojan_password,224) = '" + password + '\'').c_str())) {
@@ -178,8 +178,8 @@ string Authenticator::traffic_format(uint64_t traffic) {
 }
 
 void Authenticator::cleanUserInfo(const std::string &password){
-    trafficInfoMap.erase(password);
-    Log::log_with_date_time("session销毁，清除缓存" + password  , Log::INFO);        
+    //trafficInfoMap.erase(password);
+    Log::log_with_date_time("session销毁" + password  , Log::INFO);        
 }
 
 Authenticator::~Authenticator() {
